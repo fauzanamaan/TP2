@@ -41,7 +41,8 @@ public class ViewRole1Home {
     protected static Button button_CreatePost = new Button("Create New Post");
     protected static Button button_ViewAllPosts = new Button("View All Posts");
     protected static Button button_ViewMyPosts = new Button("View My Posts");
-    
+    protected static Button button_SearchPosts = new Button("Search Posts");
+
     protected static Line line_Separator2 = new Line(160, 210, width-20, 160);
     
     // Post table
@@ -123,7 +124,10 @@ public class ViewRole1Home {
         
         setupButtonUI(button_ViewMyPosts, "Dialog", 16, 150, Pos.CENTER, 360, 110);
         button_ViewMyPosts.setOnAction((_) -> {ControllerRole1Home.loadMyPosts(); });
-        
+
+        setupButtonUI(button_SearchPosts, "Dialog", 16, 150, Pos.CENTER, 530, 110);
+        button_SearchPosts.setOnAction((_) -> {ControllerRole1Home.searchPosts(); });
+
         // Table
         setupTableView();
         
@@ -146,7 +150,7 @@ public class ViewRole1Home {
         
         theRootPane.getChildren().addAll(
             label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
-            button_CreatePost, button_ViewAllPosts, button_ViewMyPosts,
+            button_CreatePost, button_ViewAllPosts, button_ViewMyPosts, button_SearchPosts,
             line_Separator2,
             table_Posts, line_Separator3,
             button_ViewPost, button_EditPost, button_DeletePost, line_Separator4,
@@ -173,11 +177,15 @@ public class ViewRole1Home {
         repliesCol.setCellValueFactory(new PropertyValueFactory<>("replyCount"));
         repliesCol.setPrefWidth(80);
         
+        TableColumn<PostDisplay, String> statusCol = new TableColumn<>("Status");
+        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+        statusCol.setPrefWidth(80);
+
         TableColumn<PostDisplay, String> dateCol = new TableColumn<>("Date");
         dateCol.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
         dateCol.setPrefWidth(160);
-        
-        table_Posts.getColumns().addAll(idCol, titleCol, authorCol, repliesCol, dateCol);
+
+        table_Posts.getColumns().addAll(idCol, titleCol, authorCol, repliesCol, statusCol, dateCol);
         table_Posts.setItems(postData);
         
         table_Posts.setLayoutX(20);
@@ -257,27 +265,33 @@ public class ViewRole1Home {
         private final javafx.beans.property.SimpleStringProperty title;
         private final javafx.beans.property.SimpleStringProperty author;
         private final javafx.beans.property.SimpleIntegerProperty replyCount;
+        private final javafx.beans.property.SimpleStringProperty status;
         private final javafx.beans.property.SimpleStringProperty timestamp;
-        
+
         public PostDisplay(Post post) {
             // Friend's methods: getPostID(), getUsername(), getTitle()
             this.postId = new javafx.beans.property.SimpleIntegerProperty(post.getPostID());
             this.title = new javafx.beans.property.SimpleStringProperty(post.getTitle());
             this.author = new javafx.beans.property.SimpleStringProperty(post.getUsername());
-            
+
             // Reply count tracked in ModelRole1Home
             this.replyCount = new javafx.beans.property.SimpleIntegerProperty(
                 ModelRole1Home.getReplyCount(post.getPostID()));
-            
+
+            // Read status - shows READ or UNREAD
+            this.status = new javafx.beans.property.SimpleStringProperty(
+                ModelRole1Home.isRead(post.getPostID()) ? "READ" : "UNREAD");
+
             // Formatted timestamp from ModelRole1Home helper
             this.timestamp = new javafx.beans.property.SimpleStringProperty(
                 ModelRole1Home.getFormattedTimestamp(post));
         }
-        
+
         public int getPostId() { return postId.get(); }
         public String getTitle() { return title.get(); }
         public String getAuthor() { return author.get(); }
         public int getReplyCount() { return replyCount.get(); }
+        public String getStatus() { return status.get(); }
         public String getTimestamp() { return timestamp.get(); }
     }
 }

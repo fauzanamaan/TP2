@@ -206,7 +206,7 @@ public class Database {
 	      }                                                                         
 	   
 	      try (PreparedStatement pstmt = connection.prepareStatement(query)) {      
-	          String searchTerm = "%" + keyword + "%"; // LIKE wildcard: matches 
+	          String searchTerm = "%" + keyword + "%"; 
 	  keyword anywhere                            
 	                                          
 	          if (thread == null || thread.isEmpty()) {

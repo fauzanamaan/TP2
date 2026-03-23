@@ -156,6 +156,13 @@ public class ControllerRole1Home {
     }
     
     /**
+     * Open search posts page
+     */
+    protected static void searchPosts() {
+        guiSearchPosts.ViewSearchPosts.displaySearchPosts(ViewRole1Home.theStage);
+    }
+
+    /**
      * Quit the application
      */
     protected static void performQuit() {
