@@ -4,7 +4,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
+import java.time.LocalDateTime;
+import entityClasses.Post;     
+import entityClasses.Reply;
 import entityClasses.User;
 
 /*******
@@ -126,9 +128,169 @@ public class Database {
 				+ "otp VARCHAR(255) PRIMARY KEY, "
 				+ "userName VARCHAR(255) UNIQUE)";
 	    statement.execute(otpTable);
+	    // Posts table - stores all discussion posts                                  
+	    String postsTable = "CREATE TABLE IF NOT EXISTS Posts ("                      
+	            + "postID INT AUTO_INCREMENT PRIMARY KEY, "
+	            + "username VARCHAR(255), "     
+	            + "title VARCHAR(255), "                                              
+	            + "body VARCHAR(5000), "                                              
+	            + "threadName VARCHAR(255) DEFAULT 'General', "                       
+	            + "keywords VARCHAR(500), "                                           
+	            + "timestamp TIMESTAMP, "                                             
+	            + "isDeleted BOOL DEFAULT FALSE, "
+	            + "feedback VARCHAR(5000), "                                          
+	            + "feedbackAuthor VARCHAR(255), "
+	            + "isFlagged BOOL DEFAULT FALSE, "                                    
+	            + "reason VARCHAR(500))";                                             
+	    statement.execute(postsTable);     
+	    
+	    // Replies table - stores all replies to posts
+	    String repliesTable = "CREATE TABLE IF NOT EXISTS Replies ("                  
+	            + "replyID INT AUTO_INCREMENT PRIMARY KEY, "
+	            + "parentPostID INT, "                                                
+	            + "username VARCHAR(255), "         
+	            + "body VARCHAR(5000), "        
+	            + "timestamp TIMESTAMP, "
+	            + "isDeleted BOOL DEFAULT FALSE)";                                    
+	    statement.execute(repliesTable);
+	    
+	    // ReadStatus table - tracks which users read which posts
+	    String readStatusTable = "CREATE TABLE IF NOT EXISTS ReadStatus ("
+	            + "username VARCHAR(255), "
+	            + "postID INT, "                                                      
+	            + "PRIMARY KEY (username, postID))";
+	    statement.execute(readStatusTable);     
+	    
+	    
 	}
 		
 
+	
+	  public List<Post> getAllPosts() {       
+	      List<Post> posts = new ArrayList<>();                                     
+	      String query = "SELECT * FROM Posts WHERE isDeleted = FALSE ORDER BY timestamp DESC";
+	                                                                                
+	      try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	          ResultSet rs = pstmt.executeQuery();
+	          while (rs.next()) {
+	              Post post = new Post(                                             
+	                  rs.getString("username"),
+	                  rs.getString("title"),                                        
+	                  rs.getString("body"),       
+	                  rs.getString("keywords"),
+	                  rs.getString("threadName")
+	              );                                                                
+	              post.setPostID(rs.getInt("postID"));
+	              post.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
+	              posts.add(post);            
+	          }
+	      } catch (SQLException e) {                                                
+	          e.printStackTrace();
+	      }                                                                         
+	      return posts;                           
+	  }       
+	  public List<Post> searchPosts(String keyword, String thread) {
+	      List<Post> posts = new ArrayList<>();                                     
+	      String query;                                                             
+	   
+	      if (thread == null || thread.isEmpty()) {                                 
+	          // Search all threads
+	          query = "SELECT * FROM Posts WHERE isDeleted = FALSE AND " +
+	                  "(title LIKE ? OR body LIKE ? OR keywords LIKE ?) " +
+	                  "ORDER BY timestamp DESC";  
+	      } else {                                                                  s
+	          // Search specific thread only
+	          query = "SELECT * FROM Posts WHERE isDeleted = FALSE AND threadName = ? AND " +                                   
+	                  "(title LIKE ? OR body LIKE ? OR keywords LIKE ?) " +         
+	                  "ORDER BY timestamp DESC";
+	      }                                                                         
+	   
+	      try (PreparedStatement pstmt = connection.prepareStatement(query)) {      
+	          String searchTerm = "%" + keyword + "%"; // LIKE wildcard: matches 
+	  keyword anywhere                            
+	                                          
+	          if (thread == null || thread.isEmpty()) {
+	              pstmt.setString(1, searchTerm);                                   
+	              pstmt.setString(2, searchTerm);
+	              pstmt.setString(3, searchTerm);                                   
+	          } else {                        
+	              pstmt.setString(1, thread);
+	              pstmt.setString(2, searchTerm);                                   
+	              pstmt.setString(3, searchTerm);
+	              pstmt.setString(4, searchTerm);                                   
+	          }                               
+	          ResultSet rs = pstmt.executeQuery();                                  
+	          while (rs.next()) {
+	              Post post = new Post(                                             
+	                  rs.getString("username"),   
+	                  rs.getString("title"),  
+	                  rs.getString("body"),
+	                  rs.getString("keywords"),                                     
+	                  rs.getString("threadName")
+	              );                                                                
+	              post.setPostID(rs.getInt("postID"));
+	              post.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
+	              posts.add(post);                
+	          }                               
+	      } catch (SQLException e) {
+	          e.printStackTrace();                                                  
+	      }
+	      return posts;                                                             
+	  }             
+
+	  public List<Reply> getRepliesForPost(int postId) {                            
+	      List<Reply> replies = new ArrayList<>();
+	      String query = "SELECT * FROM Replies WHERE parentPostID = ? AND isDeleted 	= FALSE ORDER BY timestamp ASC";                                             
+	   
+	      try (PreparedStatement pstmt = connection.prepareStatement(query)) {      
+	          pstmt.setInt(1, postId);        
+	          ResultSet rs = pstmt.executeQuery();
+	          while (rs.next()) {                                                   
+	              Reply reply = new Reply(
+	                  postId,                                                       
+	                  rs.getString("username"),   
+	                  rs.getString("body")    
+	              );
+	                                                                                
+	              reply.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
+	              replies.add(reply);                                               
+	          }       
+	      } catch (SQLException e) {              
+	          e.printStackTrace();            
+	      }
+	      return replies;                                                           
+	  }
+
+	  public void markPostAsRead(String username, int postId) {
+	      String query = "INSERT IGNORE INTO ReadStatus (username, postID) VALUES (?, ?)";                                                                      
+	                                          
+	      try (PreparedStatement pstmt = connection.prepareStatement(query)) {      
+	          pstmt.setString(1, username);                                         
+	          pstmt.setInt(2, postId);
+	          pstmt.executeUpdate();                                                
+	      } catch (SQLException e) {
+	          e.printStackTrace();                
+	      }                                   
+	  }
+	  public boolean isPostRead(String username, int postId) {
+	      String query = "SELECT COUNT(*) AS count FROM ReadStatus WHERE username = ? AND postID = ?";                                                            
+	   
+	      try (PreparedStatement pstmt = connection.prepareStatement(query)) {      
+	          pstmt.setString(1, username);   
+	          pstmt.setInt(2, postId);
+	          ResultSet rs = pstmt.executeQuery();                                  
+	          if (rs.next()) {
+	              return rs.getInt("count") > 0;                                    
+	          }                                   
+	      } catch (SQLException e) {          
+	          e.printStackTrace();
+	      }                                                                         
+	      return false;
+	  }                                                   
+
+
+
+	
 
 /*******
  * <p> Method: isDatabaseEmpty </p>
