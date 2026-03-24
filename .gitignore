@@ -1,0 +1,15 @@
+# Eclipse config files - machine specific, never commit these
+.project
+.classpath
+.settings/
+
+# Mac OS junk files
+.DS_Store
+__MACOSX/
+
+# Compiled Java files
+*.class
+bin/
+
+# Build output
+out/
