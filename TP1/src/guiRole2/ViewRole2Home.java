@@ -1,24 +1,27 @@
 package guiRole2;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import database.Database;
-//import database.Database;
 import entityClasses.User;
+import entityClasses.Post;
+import java.util.List;
 
 
 /*******
  * <p> Title: ViewRole2Home Class. </p>
  * 
- * <p> Description: The Java/FX-based Role2 Home Page.  The page is a stub for some role needed for
- * the application.  The widgets on this page are likely the minimum number and kind for other role
- * pages that may be needed.</p>
+ * <p> Description: The Java/FX-based Role2 Home Page. Staff can create posts, view posts,
+ * create threads, delete threads, and reply through the post view screen.</p>
  * 
  * <p> Copyright: Lynn Robert Carter © 2025 </p>
  * 
@@ -53,10 +56,20 @@ public class ViewRole2Home {
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator1 = new Line(20, 95, width-20, 95);
 
-	// GUI ARea 2: This is a stub, so there are no widgets here.  For an actual role page, this are
-	// would contain the widgets needed for the user to play the assigned role.
-	
-	
+	// GUI Area 2: Staff discussion system controls
+	protected static Button button_CreatePost = new Button("Create Post");
+	protected static Button button_ViewAllPosts = new Button("View All Posts");
+	protected static Button button_CreateThread = new Button("Create Thread");
+	protected static Button button_DeleteThread = new Button("Delete Thread");
+	protected static Button button_ViewPost = new Button("View Selected Post");
+
+	protected static Label label_Posts = new Label("Posts:");
+	protected static ListView<String> list_Posts = new ListView<>();
+	protected static ObservableList<String> postData = FXCollections.observableArrayList();
+
+	protected static Label label_Threads = new Label("Threads:");
+	protected static ListView<String> list_Threads = new ListView<>();
+	protected static ObservableList<String> threadData = FXCollections.observableArrayList();
 	
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator4 = new Line(20, 525, width-20,525);
@@ -125,8 +138,11 @@ public class ViewRole2Home {
 		
 		label_UserDetails.setText("User: " + theUser.getUserName());// Set the username
 
+		ControllerRole2Home.loadAllPosts();
+		ControllerRole2Home.loadAllThreads();
+
 		// Set the title for the window, display the page, and wait for the Admin to do something
-		theStage.setTitle("CSE 360 Foundations: Staff Home Page");
+		theStage.setTitle("CSE 360 Foundations: Staff Discussion System");
 		theStage.setScene(theRole2HomeScene);						// Set this page onto the stage
 		theStage.show();											// Display it to the user
 	}
@@ -148,37 +164,58 @@ public class ViewRole2Home {
 		theRootPane = new Pane();
 		theRole2HomeScene = new Scene(theRootPane, width, height);	// Create the scene
 		
-		// Set the title for the window
-		
-		// Populate the window with the title and other common widgets and set their static state
-		
 		// GUI Area 1
-		label_PageTitle.setText("Staff Home Page");
+		label_PageTitle.setText("Staff Discussion System");
 		setupLabelUI(label_PageTitle, "Arial", 28, width, Pos.CENTER, 0, 5);
 
-		label_UserDetails.setText("User: " + theUser.getUserName());
 		setupLabelUI(label_UserDetails, "Arial", 20, width, Pos.BASELINE_LEFT, 20, 55);
 		
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
-		button_UpdateThisUser.setOnAction((_) -> {ControllerRole2Home.performUpdate(); });
+		button_UpdateThisUser.setOnAction((e) -> {ControllerRole2Home.performUpdate(); });
 		
 		// GUI Area 2
-		
-			// This is a stub, so this area is empty
-		
+		setupButtonUI(button_CreatePost, "Dialog", 16, 140, Pos.CENTER, 20, 110);
+		button_CreatePost.setOnAction((e) -> {ControllerRole2Home.performCreatePost(); });
+
+		setupButtonUI(button_ViewAllPosts, "Dialog", 16, 140, Pos.CENTER, 180, 110);
+		button_ViewAllPosts.setOnAction((e) -> {ControllerRole2Home.loadAllPosts(); });
+
+		setupButtonUI(button_CreateThread, "Dialog", 16, 140, Pos.CENTER, 340, 110);
+		button_CreateThread.setOnAction((e) -> {ControllerRole2Home.performCreateThread(); });
+
+		setupButtonUI(button_DeleteThread, "Dialog", 16, 140, Pos.CENTER, 500, 110);
+		button_DeleteThread.setOnAction((e) -> {ControllerRole2Home.performDeleteThread(); });
+
+		setupLabelUI(label_Posts, "Arial", 18, 200, Pos.BASELINE_LEFT, 20, 165);
+		list_Posts.setItems(postData);
+		list_Posts.setLayoutX(20);
+		list_Posts.setLayoutY(195);
+		list_Posts.setPrefWidth(460);
+		list_Posts.setPrefHeight(250);
+
+		setupButtonUI(button_ViewPost, "Dialog", 16, 180, Pos.CENTER, 160, 455);
+		button_ViewPost.setOnAction((e) -> {ControllerRole2Home.performViewSelectedPost(); });
+
+		setupLabelUI(label_Threads, "Arial", 18, 200, Pos.BASELINE_LEFT, 510, 165);
+		list_Threads.setItems(threadData);
+		list_Threads.setLayoutX(510);
+		list_Threads.setLayoutY(195);
+		list_Threads.setPrefWidth(250);
+		list_Threads.setPrefHeight(250);
 		
 		// GUI Area 3
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
-        button_Logout.setOnAction((_) -> {ControllerRole2Home.performLogout(); });
+        button_Logout.setOnAction((e) -> {ControllerRole2Home.performLogout(); });
         
         setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
-        button_Quit.setOnAction((_) -> {ControllerRole2Home.performQuit(); });
+        button_Quit.setOnAction((e) -> {ControllerRole2Home.performQuit(); });
 
-		// This is the end of the GUI initialization code
-		
 		// Place all of the widget items into the Root Pane's list of children
         theRootPane.getChildren().addAll(
 			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
+			button_CreatePost, button_ViewAllPosts, button_CreateThread, button_DeleteThread,
+			label_Posts, list_Posts, button_ViewPost,
+			label_Threads, list_Threads,
 	        line_Separator4, button_Logout, button_Quit);
 	}
 	
@@ -228,5 +265,39 @@ public class ViewRole2Home {
 		b.setAlignment(p);
 		b.setLayoutX(x);
 		b.setLayoutY(y);		
+	}
+
+	/**
+	 * Populate the post list shown to staff
+	 */
+	protected static void populatePostList(List<Post> posts) {
+		postData.clear();
+		for (Post post : posts) {
+			String title = post.getTitle();
+			if (title == null || title.isBlank()) {
+				title = "(Reply/No Title)";
+			}
+			postData.add("ID " + post.getPostID() + " | " + title + " | " + post.getUsername());
+		}
+	}
+
+	/**
+	 * Populate the thread list shown to staff
+	 */
+	protected static void populateThreadList(List<String> threads) {
+		threadData.clear();
+		threadData.addAll(threads);
+	}
+
+	/**
+	 * Show alert dialog
+	 */
+	protected static void showAlert(String title, String message) {
+		javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+			javafx.scene.control.Alert.AlertType.INFORMATION);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 }
