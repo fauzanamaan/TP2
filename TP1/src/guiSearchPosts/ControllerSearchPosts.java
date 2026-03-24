@@ -36,6 +36,9 @@ public class ControllerSearchPosts {
         // Call model to search
         List<Post> results = ModelSearchPosts.search(keyword, threadFilter);
 
+        // Save results for back navigation
+        ModelSearchPosts.setLastSearchResults(results);
+
         // Populate results table
         ViewSearchPosts.populateResultsTable(results);
 

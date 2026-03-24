@@ -21,10 +21,24 @@ public class ModelSearchPosts {
          return ModelRole1Home.searchPosts(keyword, thread);                  
     }          
     /**
-    * Gets the read status of a post for the current user
-    */                                                                      
+     * Gets the read status of a post for the current user
+     */
     public static boolean isPostRead(int postId) {
-    	return ModelRole1Home.isRead(postId);                                
-    }          
+        return ModelRole1Home.isRead(postId);
+    }
+
+    /**
+     * Store search results for back navigation
+     */
+    public static void setLastSearchResults(List<Post> results) {
+        lastSearchResults = new ArrayList<>(results);
+    }
+
+    /**
+     * Get last search results for back navigation
+     */
+    public static List<Post> getLastSearchResults() {
+        return new ArrayList<>(lastSearchResults);
+    }
 }                                                                            
 

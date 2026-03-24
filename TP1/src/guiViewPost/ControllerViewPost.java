@@ -2,6 +2,9 @@ package guiViewPost;
 
 import guiRole1.ViewRole1Home;
 import guiSearchPosts.ViewSearchPosts;
+import guiSearchPosts.ModelSearchPosts;
+import java.util.List;
+import entityClasses.Post;
 
 /**
  * <p> Title: ControllerViewPost Class </p>
@@ -15,11 +18,15 @@ import guiSearchPosts.ViewSearchPosts;
 public class ControllerViewPost {
 
     /**
-     * Go bacik to previous page (main or search results)
+     * Go back to previous page (main or search results)
      */
     public static void goBack() {
         // Determine which page to return to
         if (ViewViewPost.previousPageType.equals("search")) {
+            // Restore saved search results
+            List<Post> savedResults = ModelSearchPosts.getLastSearchResults();
+            ViewSearchPosts.populateResultsTable(savedResults);
+
             // Return to search results page
             ViewSearchPosts.displaySearchPosts(ViewViewPost.theStage);
         } else {
