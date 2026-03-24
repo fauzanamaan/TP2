@@ -69,10 +69,13 @@ public class ControllerSearchPosts {
             return;
         }
 
+        // Set previous page type to "search" so Back button returns to search results
+        guiViewPost.ViewViewPost.previousPageType = "search";
+
         // Open view post dialog
         guiViewPost.ViewViewPost.displayViewPost(
             ViewSearchPosts.theStage,
-            ViewSearchPosts.theStage.getTitle(),
+            null,
             post
         );
     }

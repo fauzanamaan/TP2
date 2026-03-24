@@ -248,8 +248,24 @@ public class ModelRole1Home {
         if (post.getTimestamp() == null) {
             return "";
         }
-        java.time.format.DateTimeFormatter formatter = 
+        java.time.format.DateTimeFormatter formatter =
             java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return post.getTimestamp().format(formatter);
+    }
+
+    /**
+     * Check if current user has read a post
+     */
+    public static boolean isRead(int postId) {
+        database.Database db = applicationMain.FoundationsMain.database;
+        return db.isPostRead(currentUser, postId);
+    }
+
+    /**
+     * Search posts by keyword, optionally filtered by thread
+     */
+    public static List<Post> searchPosts(String keyword, String thread) {
+        database.Database db = applicationMain.FoundationsMain.database;
+        return db.searchPosts(keyword, thread);
     }
 }

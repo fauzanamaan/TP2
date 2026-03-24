@@ -49,9 +49,9 @@ public class ViewViewPost {
     /**
      * Entry point to display view post page
      */
-    public static void displayViewPost(Stage ps, String fromPage, Post post) {
+    public static void displayViewPost(Stage ps, entityClasses.User user, Post post) {
         theStage = ps;
-        previousPageType = fromPage;
+        previousPageType = "main"; // Default to main; can be overridden by caller
 
         if (theView == null) {
             theView = new ViewViewPost();
@@ -60,7 +60,7 @@ public class ViewViewPost {
         // Load post and mark as read
         ModelViewPost.loadPost(post);
         database.Database db = applicationMain.FoundationsMain.database;
-        db.markPostAsRead(applicationMain.FoundationsMain.currentUsername, post.getPostID());
+        db.markPostAsRead(guiRole1.ModelRole1Home.getCurrentUser(), post.getPostID());
 
         // Update display
         populatePostDetails();
