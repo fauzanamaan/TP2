@@ -133,9 +133,8 @@ public class ControllerRole1Home {
             return;
         }
         
-        // Open edit post dialog
-//        guiEditPost.ViewEditPost.displayEditPost(ViewRole1Home.theStage, 
-//            ViewRole1Home.theUser, post);
+        guiViewPost.ViewViewPost.displayViewPost(ViewRole1Home.theStage, ViewRole1Home.theUser, post);
+        
     }
     
     /**

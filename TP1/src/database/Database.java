@@ -1279,6 +1279,51 @@ public class Database {
 
 		return reply;
 	}
+	
+	public boolean editPost(int postID, String newTitle, String newBody, String currentUser) {
+
+	    String query = "SELECT userName, parentPostID FROM postDB WHERE postID = ?";
+
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, postID);
+	        ResultSet rs = pstmt.executeQuery();
+
+	        if (!rs.next()) return false;
+
+	        String owner = rs.getString("userName");
+
+	        
+	        if (!owner.equals(currentUser)) return false;
+
+	        int parentID = rs.getInt("parentPostID");
+
+	        //edit reply if it no title found
+	        String updateQuery;
+	        if (parentID == -1) {
+	            updateQuery = "UPDATE postDB SET title = ?, body = ? WHERE postID = ?";
+	        } else {
+	            updateQuery = "UPDATE postDB SET body = ? WHERE postID = ?";
+	        }
+
+	        try (PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
+
+	            if (parentID == -1) {
+	                updateStmt.setString(1, newTitle);
+	                updateStmt.setString(2, newBody);
+	                updateStmt.setInt(3, postID);
+	            } else {
+	                updateStmt.setString(1, newBody);
+	                updateStmt.setInt(2, postID);
+	            }
+
+	            return updateStmt.executeUpdate() > 0;
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
 
 	/*********
 	 * <p> Method: softDeletePostById() </p>

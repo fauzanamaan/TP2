@@ -51,6 +51,8 @@ public class ViewViewPost {
     protected static TextArea text_ReplyBody = new TextArea();
     protected static Button button_PostReply = new Button("Post Reply");
     protected static Button button_DeleteReply = new Button("Delete Selected Reply");
+    protected static Button button_EditReply = new Button("Edit Reply");
+    protected static Button button_EditPost = new Button("Edit Post");
     
     protected static Button button_Return = new Button("Return");
 
@@ -191,7 +193,7 @@ public class ViewViewPost {
         text_PostBody.setPrefWidth(660);
         text_PostBody.setPrefHeight(120);
         text_PostBody.setWrapText(true);
-        text_PostBody.setEditable(false);
+        text_PostBody.setEditable(true);
         
         // Replies section
         setupLabelUI(label_Replies, "Arial", 16, 200, Pos.BASELINE_LEFT, 20, 215);
@@ -213,11 +215,17 @@ public class ViewViewPost {
         text_ReplyBody.setWrapText(true);
         text_ReplyBody.setPromptText("Type your reply here...");
         
-        setupButtonUI(button_PostReply, "Dialog", 14, 150, Pos.CENTER, 225, 515);
+        setupButtonUI(button_PostReply, "Dialog", 14, 150, Pos.CENTER, 200, 515);
         button_PostReply.setOnAction((e) -> { ControllerViewPost.performPostReply(); });
         
-        setupButtonUI(button_DeleteReply, "Dialog", 14, 200, Pos.CENTER, 425, 515);
+        setupButtonUI(button_DeleteReply, "Dialog", 14, 200, Pos.CENTER, 370, 515);
         button_DeleteReply.setOnAction((e) -> { ControllerViewPost.performDeleteReply(); });
+        
+        setupButtonUI(button_EditReply, "Dialog", 14, 200, Pos.CENTER, 550, 515);
+        button_EditReply.setOnAction((e) -> { ControllerViewPost.performEditReply(); });
+        
+        setupButtonUI(button_EditPost, "Dialog", 14, 150, Pos.CENTER, 20, 515);
+        button_EditPost.setOnAction((e) -> { ControllerViewPost.performEditPost(); });
         
         setupButtonUI(button_Return, "Dialog", 16, 150, Pos.CENTER, 275, 555);
         button_Return.setOnAction((e) -> { ControllerViewPost.performReturn(); });
@@ -226,7 +234,7 @@ public class ViewViewPost {
             label_PostTitle, label_PostMeta, text_PostBody,
             label_Replies, list_Replies,
             label_AddReply, text_ReplyBody,
-            button_PostReply, button_DeleteReply,
+            button_PostReply, button_DeleteReply, button_EditReply, button_EditPost,
             button_Return
         );
     }

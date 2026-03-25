@@ -29,4 +29,5 @@ public class Reply extends Post {
                 ", timestamp=" + getTimestamp() +
                 '}';
     }
+   }
 

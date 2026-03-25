@@ -25,7 +25,69 @@ public class ControllerViewPost {
             ViewRole1Home.displayRole1Home(ViewViewPost.theStage, null);
         }
     }
-
+    
+    /**
+     * 🔹 EDIT REPLY
+     */
+    protected static void performEditReply() {
+    	int selectedIndex = ViewViewPost.list_Replies.getSelectionModel().getSelectedIndex();
+    	if (selectedIndex < 0) {
+    		showAlert("No selection", " Select a repl first");
+    		return;
+    	}
+    	
+    	Reply selectedReply = ViewViewPost.currentReplies.get(selectedIndex);
+    	String currentUser = ViewViewPost.theUser.getUserName();
+    	
+    	if (!selectedReply.getUsername().equals(currentUser)) {
+    		showAlert("Error", "You do not own this reply");
+    		return;
+    	}
+    	
+    	String newBody = ViewViewPost.text_ReplyBody.getText();
+    	
+    	if (newBody == null || newBody.trim().isEmpty()) {
+    		showAlert("Validation Error", "Reply body cannot be empty");
+    		return;
+    	}
+    	
+    	boolean success = applicationMain.FoundationsMain.database.editPost(selectedReply.getPostID(), null, newBody.trim(), currentUser);
+    	if (success) {
+    		showAlert("Success", "Reply edited");
+    		ViewViewPost.text_ReplyBody.clear();
+    		ViewViewPost.loadReplies();
+    	} else {
+    		showAlert("Error", "Failed to edit reply");
+    	}
+    }
+    
+    /**
+     * 🔹 EDIT POST
+     */
+    protected static void  performEditPost() {
+    	Post post = ViewViewPost.thePost;
+    	String currentUser = ViewViewPost.theUser.getUserName();
+    	
+    	if (!post.getUsername().equals(currentUser)) {
+    		showAlert("Error", "You do not own this post");
+    		return;
+    	}
+    	
+    	String newBody = ViewViewPost.text_PostBody.getText();
+    	if (newBody == null || newBody.trim().isEmpty()) {
+    		showAlert("Validation Error", "Post body cannot be empty");
+    		return;
+    	}
+    	
+    	
+    	boolean success = applicationMain.FoundationsMain.database.editPost(post.getPostID(), post.getTitle(), newBody, currentUser);
+    	if (success) {
+    		showAlert("Success", "Post was edited");
+    	} else {
+    		showAlert("Error", "Failed to edit post");
+    	}
+    }
+    
     /**
      * 🔹 POST REPLY
      */
