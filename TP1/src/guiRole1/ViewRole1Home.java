@@ -41,8 +41,7 @@ public class ViewRole1Home {
     protected static Button button_CreatePost = new Button("Create New Post");
     protected static Button button_ViewAllPosts = new Button("View All Posts");
     protected static Button button_ViewMyPosts = new Button("View My Posts");
-    protected static Button button_SearchPosts = new Button("Search Posts");
-
+    
     protected static Line line_Separator2 = new Line(160, 210, width-20, 160);
     
     // Post table
@@ -112,45 +111,42 @@ public class ViewRole1Home {
         setupLabelUI(label_UserDetails, "Arial", 20, width, Pos.BASELINE_LEFT, 20, 55);
         
         setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
-        button_UpdateThisUser.setOnAction((_) -> 
+        button_UpdateThisUser.setOnAction((e) -> 
             {guiUserUpdate.ViewUserUpdate.displayUserUpdate(theStage, theUser); });
         
         // Action buttons
         setupButtonUI(button_CreatePost, "Dialog", 16, 150, Pos.CENTER, 20, 110);
-        button_CreatePost.setOnAction((_) -> {ControllerRole1Home.createNewPost(); });
+        button_CreatePost.setOnAction((e) -> {ControllerRole1Home.createNewPost(); });
         
         setupButtonUI(button_ViewAllPosts, "Dialog", 16, 150, Pos.CENTER, 190, 110);
-        button_ViewAllPosts.setOnAction((_) -> {ControllerRole1Home.loadAllPosts(); });
+        button_ViewAllPosts.setOnAction((e) -> {ControllerRole1Home.loadAllPosts(); });
         
         setupButtonUI(button_ViewMyPosts, "Dialog", 16, 150, Pos.CENTER, 360, 110);
-        button_ViewMyPosts.setOnAction((_) -> {ControllerRole1Home.loadMyPosts(); });
-
-        setupButtonUI(button_SearchPosts, "Dialog", 16, 150, Pos.CENTER, 530, 110);
-        button_SearchPosts.setOnAction((_) -> {ControllerRole1Home.searchPosts(); });
-
+        button_ViewMyPosts.setOnAction((e) -> {ControllerRole1Home.loadMyPosts(); });
+        
         // Table
         setupTableView();
         
         // Post actions
         setupButtonUI(button_ViewPost, "Dialog", 16, 180, Pos.CENTER, 20, 495);
-        button_ViewPost.setOnAction((_) -> {ControllerRole1Home.viewPost(); });
+        button_ViewPost.setOnAction((e) -> {ControllerRole1Home.viewPost(); });
         
         setupButtonUI(button_EditPost, "Dialog", 16, 150, Pos.CENTER, 220, 495);
-        button_EditPost.setOnAction((_) -> {ControllerRole1Home.editPost(); });
+        button_EditPost.setOnAction((e) -> {ControllerRole1Home.editPost(); });
         
         setupButtonUI(button_DeletePost, "Dialog", 16, 150, Pos.CENTER, 390, 495);
-        button_DeletePost.setOnAction((_) -> {ControllerRole1Home.deletePost(); });
+        button_DeletePost.setOnAction((e) -> {ControllerRole1Home.deletePost(); });
         
         // Navigation
         setupButtonUI(button_Logout, "Dialog", 18, 210, Pos.CENTER, 20, 540);
-        button_Logout.setOnAction((_) -> {ControllerRole1Home.performLogout(); });
+        button_Logout.setOnAction((e) -> {ControllerRole1Home.performLogout(); });
     
         setupButtonUI(button_Quit, "Dialog", 18, 210, Pos.CENTER, 300, 540);
-        button_Quit.setOnAction((_) -> {ControllerRole1Home.performQuit(); });
+        button_Quit.setOnAction((e) -> {ControllerRole1Home.performQuit(); });
         
         theRootPane.getChildren().addAll(
             label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
-            button_CreatePost, button_ViewAllPosts, button_ViewMyPosts, button_SearchPosts,
+            button_CreatePost, button_ViewAllPosts, button_ViewMyPosts,
             line_Separator2,
             table_Posts, line_Separator3,
             button_ViewPost, button_EditPost, button_DeletePost, line_Separator4,
@@ -177,15 +173,11 @@ public class ViewRole1Home {
         repliesCol.setCellValueFactory(new PropertyValueFactory<>("replyCount"));
         repliesCol.setPrefWidth(80);
         
-        TableColumn<PostDisplay, String> statusCol = new TableColumn<>("Status");
-        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
-        statusCol.setPrefWidth(80);
-
         TableColumn<PostDisplay, String> dateCol = new TableColumn<>("Date");
         dateCol.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
         dateCol.setPrefWidth(160);
-
-        table_Posts.getColumns().addAll(idCol, titleCol, authorCol, repliesCol, statusCol, dateCol);
+        
+        table_Posts.getColumns().addAll(idCol, titleCol, authorCol, repliesCol, dateCol);
         table_Posts.setItems(postData);
         
         table_Posts.setLayoutX(20);
@@ -265,33 +257,27 @@ public class ViewRole1Home {
         private final javafx.beans.property.SimpleStringProperty title;
         private final javafx.beans.property.SimpleStringProperty author;
         private final javafx.beans.property.SimpleIntegerProperty replyCount;
-        private final javafx.beans.property.SimpleStringProperty status;
         private final javafx.beans.property.SimpleStringProperty timestamp;
-
+        
         public PostDisplay(Post post) {
             // Friend's methods: getPostID(), getUsername(), getTitle()
             this.postId = new javafx.beans.property.SimpleIntegerProperty(post.getPostID());
             this.title = new javafx.beans.property.SimpleStringProperty(post.getTitle());
             this.author = new javafx.beans.property.SimpleStringProperty(post.getUsername());
-
+            
             // Reply count tracked in ModelRole1Home
             this.replyCount = new javafx.beans.property.SimpleIntegerProperty(
                 ModelRole1Home.getReplyCount(post.getPostID()));
-
-            // Read status - shows READ or UNREAD
-            this.status = new javafx.beans.property.SimpleStringProperty(
-                ModelRole1Home.isRead(post.getPostID()) ? "READ" : "UNREAD");
-
+            
             // Formatted timestamp from ModelRole1Home helper
             this.timestamp = new javafx.beans.property.SimpleStringProperty(
                 ModelRole1Home.getFormattedTimestamp(post));
         }
-
+        
         public int getPostId() { return postId.get(); }
         public String getTitle() { return title.get(); }
         public String getAuthor() { return author.get(); }
         public int getReplyCount() { return replyCount.get(); }
-        public String getStatus() { return status.get(); }
         public String getTimestamp() { return timestamp.get(); }
     }
 }
