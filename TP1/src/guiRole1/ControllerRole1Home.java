@@ -2,6 +2,8 @@ package guiRole1;
 
 import entityClasses.Post;
 import java.util.List;
+import java.util.Optional;
+import javafx.scene.control.TextInputDialog;
 
 /**
  * <p> Title: ControllerRole1Home Class. </p>
@@ -39,8 +41,42 @@ public class ControllerRole1Home {
      * Create a new post - opens dialog
      */
     protected static void createNewPost() {
-        guiCreatePost.ViewCreatePost.displayCreatePost(ViewRole1Home.theStage, 
-            ViewRole1Home.theUser);
+        TextInputDialog titleDialog = new TextInputDialog();
+        titleDialog.setTitle("Create Post");
+        titleDialog.setHeaderText("Enter Post Title");
+        titleDialog.setContentText("Title:");
+
+        Optional<String> titleResult = titleDialog.showAndWait();
+
+        if (!titleResult.isPresent() || titleResult.get().trim().isEmpty()) {
+            ViewRole1Home.showAlert("Error", "Title cannot be empty.");
+            return;
+        }
+
+        TextInputDialog bodyDialog = new TextInputDialog();
+        bodyDialog.setTitle("Create Post");
+        bodyDialog.setHeaderText("Enter Post Body");
+        bodyDialog.setContentText("Body:");
+
+        Optional<String> bodyResult = bodyDialog.showAndWait();
+
+        if (!bodyResult.isPresent() || bodyResult.get().trim().isEmpty()) {
+            ViewRole1Home.showAlert("Error", "Body cannot be empty.");
+            return;
+        }
+
+        boolean success = ModelRole1Home.createPost(
+            titleResult.get().trim(),
+            bodyResult.get().trim(),
+            "General"
+        );
+
+        if (success) {
+            ViewRole1Home.showAlert("Success", "Post created successfully.");
+            loadAllPosts();
+        } else {
+            ViewRole1Home.showAlert("Error", "Failed to create post.");
+        }
     }
     
     /**
@@ -98,8 +134,8 @@ public class ControllerRole1Home {
         }
         
         // Open edit post dialog
-        guiEditPost.ViewEditPost.displayEditPost(ViewRole1Home.theStage, 
-            ViewRole1Home.theUser, post);
+//        guiEditPost.ViewEditPost.displayEditPost(ViewRole1Home.theStage, 
+//            ViewRole1Home.theUser, post);
     }
     
     /**
@@ -155,13 +191,6 @@ public class ControllerRole1Home {
         guiUserLogin.ViewUserLogin.displayUserLogin(ViewRole1Home.theStage);
     }
     
-    /**
-     * Open search posts page
-     */
-    protected static void searchPosts() {
-        guiSearchPosts.ViewSearchPosts.displaySearchPosts(ViewRole1Home.theStage);
-    }
-
     /**
      * Quit the application
      */
