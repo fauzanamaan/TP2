@@ -197,7 +197,6 @@ public class User {
      */
     // Gets the current value of the Student role attribute.
     public String getEmailAddress() { return emailAddress; }
-    
 
     public void setUserName(String s) { userName = s; }
     public void setPassword(String s) { password = s; }
@@ -206,6 +205,7 @@ public class User {
     public void setLastName(String s) { lastName = s; }
     public void setPreferredFirstName(String s) { preferredFirstName = s; }
     public void setEmailAddress(String s) { emailAddress = s; }
+
     
     /*****
      * <p> Method: String getAdminRole() </p>
