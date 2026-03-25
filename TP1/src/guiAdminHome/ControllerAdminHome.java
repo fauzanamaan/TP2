@@ -1,5 +1,7 @@
 package guiAdminHome;
 
+import java.util.Optional;
+
 import database.Database;
 
 /*******
@@ -75,8 +77,8 @@ public class ControllerAdminHome {
 		String roleKey = theSelectedRole;
 		if ("Student".equals(theSelectedRole)) roleKey = "Role1";
 		else if ("Staff".equals(theSelectedRole)) roleKey = "Role2";
-		String invitationCode = theDatabase.generateInvitationCode(emailAddress,
-				roleKey);
+		
+		String invitationCode = theDatabase.generateInvitationCode(emailAddress, roleKey);
 		String msg = "Code: " + invitationCode + " for role " + theSelectedRole + 
 				" was sent to: " + emailAddress;
 		System.out.println(msg);
@@ -103,7 +105,8 @@ public class ControllerAdminHome {
 //		ViewAdminHome.alertNotImplemented.setHeaderText("Manage Invitations Issue");
 //		ViewAdminHome.alertNotImplemented.setContentText("Manage Invitations Not Yet Implemented");
 //		ViewAdminHome.alertNotImplemented.showAndWait();
-		guiManageInvitations.ViewManageInvitations.displayManageInvitations(ViewAdminHome.theStage, ViewAdminHome.theUser);
+		guiManageInvitations.ViewManageInvitations.displayManageInvitations(
+				ViewAdminHome.theStage, ViewAdminHome.theUser);
 	}
 	
 	/**********
@@ -121,25 +124,37 @@ public class ControllerAdminHome {
 		ViewAdminHome.alertNotImplemented.setContentText("One-Time Password Not Yet Implemented");
 		ViewAdminHome.alertNotImplemented.showAndWait();*/
 		
-		ViewAdminHome.result = ViewAdminHome.dialogsetOneTimePassword.showAndWait();
+		Optional<String> result = ViewAdminHome.dialogsetOneTimePassword.showAndWait();
+		
+		// User closed/cancelled dialog
+		if (result.isEmpty()) {
+			return;
+		}
+		
+		String selectedUser = result.get().trim();
+		
+		// Empty input check
+		if (selectedUser.isEmpty()) {
+			ViewAdminHome.alertNotImplemented.setTitle("One Time Password");
+			ViewAdminHome.alertNotImplemented.setHeaderText("One-Time Password Issue");
+			ViewAdminHome.alertNotImplemented.setContentText("Please enter a username.");
+			ViewAdminHome.alertNotImplemented.showAndWait();
+			return;
+		}
 		
 		ViewAdminHome.alertNotImplemented.setTitle("One Time Password");
-		ViewAdminHome.alertNotImplemented.setHeaderText("generated OTP for user: " + ViewAdminHome.result.get());
+		ViewAdminHome.alertNotImplemented.setHeaderText("Generated OTP for user: " + selectedUser);
 		
-		ViewAdminHome.result.ifPresent(_ -> 
-			{if(theDatabase.doesUserExist(ViewAdminHome.result.get())) {
-				if(!theDatabase.otpForUserHasBeenGenerated(ViewAdminHome.result.get())) {
-					String otp = theDatabase.generateOneTimePassword(ViewAdminHome.result.get());
-					ViewAdminHome.alertNotImplemented.setContentText(otp);
-					}
-				else {ViewAdminHome.alertNotImplemented.setContentText("OTP already generated");}
-				} 
-			
-			else {
-				ViewAdminHome.alertNotImplemented.setContentText("User does not exist.");
-				}
+		if (theDatabase.doesUserExist(selectedUser)) {
+			if (!theDatabase.otpForUserHasBeenGenerated(selectedUser)) {
+				String otp = theDatabase.generateOneTimePassword(selectedUser);
+				ViewAdminHome.alertNotImplemented.setContentText(otp);
+			} else {
+				ViewAdminHome.alertNotImplemented.setContentText("OTP already generated");
 			}
-		);
+		} else {
+			ViewAdminHome.alertNotImplemented.setContentText("User does not exist.");
+		}
 		
 		ViewAdminHome.alertNotImplemented.showAndWait();
 	}
@@ -208,7 +223,7 @@ public class ControllerAdminHome {
 	 * 
 	 * @param emailAddress	This String holds what is expected to be an email address
 	 */
-protected static boolean invalidEmailAddress(String emailAddress) {
+	protected static boolean invalidEmailAddress(String emailAddress) {
 	
 		// *** ADDED ***
 		// Validate the email address using the EmailAddressRecognizer FSM
