@@ -3,35 +3,191 @@ package guiViewPost;
 import guiRole1.ViewRole1Home;
 import guiSearchPosts.ViewSearchPosts;
 import guiSearchPosts.ModelSearchPosts;
-import java.util.List;
 import entityClasses.Post;
+import entityClasses.Reply;
+
+import java.util.List;
 
 /**
- * <p> Title: ControllerViewPost Class </p>
- *
- * <p> Description: Controller for View Post functionality - handles user actions </p>
- *
- * <p> Copyright: Lynn Robert Carter © 2025 </p>
- *
- * @version 1.00 2026-03-23 Initial implementation for Read & Search functionality
+ * Controller for View Post functionality (Replies + Navigation)
  */
 public class ControllerViewPost {
 
     /**
-     * Go back to previous page (main or search results)
+     * 🔹 BACK BUTTON (Search OR Home)
      */
     public static void goBack() {
-        // Determine which page to return to
         if (ViewViewPost.previousPageType.equals("search")) {
-            // Restore saved search results
             List<Post> savedResults = ModelSearchPosts.getLastSearchResults();
             ViewSearchPosts.populateResultsTable(savedResults);
-
-            // Return to search results page
             ViewSearchPosts.displaySearchPosts(ViewViewPost.theStage);
         } else {
-            // Default: return to main Role1Home page
             ViewRole1Home.displayRole1Home(ViewViewPost.theStage, null);
         }
+    }
+
+    /**
+     * 🔹 POST REPLY
+     */
+    protected static void performPostReply() {
+
+        String replyBody = ViewViewPost.text_ReplyBody.getText();
+
+        if (replyBody == null || replyBody.trim().isEmpty()) {
+            showAlert("Validation Error", "Reply body cannot be empty.");
+            return;
+        }
+
+        if (ViewViewPost.thePost == null) {
+            showAlert("Error", "No post selected.");
+            return;
+        }
+
+        if (ViewViewPost.theUser == null ||
+            ViewViewPost.theUser.getUserName() == null ||
+            ViewViewPost.theUser.getUserName().isBlank()) {
+            showAlert("Error", "No valid user logged in.");
+            return;
+        }
+
+        boolean success = false;
+
+        // ROLE 1 (Student)
+        if (applicationMain.FoundationsMain.activeHomePage == 2) {
+
+            success = guiRole1.ModelRole1Home.createReply(
+                ViewViewPost.thePost.getPostID(),
+                replyBody.trim()
+            );
+        }
+
+        // ROLE 2 (Staff)
+        else if (applicationMain.FoundationsMain.activeHomePage == 3) {
+
+            try {
+                String threadName = ViewViewPost.thePost.getThreadName();
+                if (threadName == null || threadName.isBlank()) {
+                    threadName = "General";
+                }
+
+                applicationMain.FoundationsMain.database.createReply(
+                    ViewViewPost.theUser.getUserName(),
+                    replyBody.trim(),
+                    "",
+                    threadName,
+                    ViewViewPost.thePost.getPostID()
+                );
+
+                success = true;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                success = false;
+            }
+        }
+
+        else {
+            showAlert("Error", "Unknown role.");
+            return;
+        }
+
+        if (success) {
+            showAlert("Success", "Reply posted!");
+            ViewViewPost.text_ReplyBody.clear();
+            ViewViewPost.loadReplies();
+        } else {
+            showAlert("Error", "Failed to post reply.");
+        }
+    }
+
+    /**
+     * 🔹 DELETE REPLY (FIXED WITH DATABASE)
+     */
+    protected static void performDeleteReply() {
+
+        int selectedIndex = ViewViewPost.list_Replies.getSelectionModel().getSelectedIndex();
+
+        if (selectedIndex < 0) {
+            showAlert("No Selection", "Select a reply first.");
+            return;
+        }
+
+        if (selectedIndex >= ViewViewPost.currentReplies.size()) {
+            showAlert("Error", "Reply not found.");
+            return;
+        }
+
+        Reply selectedReply = ViewViewPost.currentReplies.get(selectedIndex);
+        String currentUser = ViewViewPost.theUser.getUserName();
+
+        if (!selectedReply.getUsername().equals(currentUser)) {
+            showAlert("Unauthorized", "You can only delete your own replies.");
+            return;
+        }
+
+        boolean confirmed = ViewViewPost.showConfirmation(
+            "Confirm Delete",
+            "Delete this reply?"
+        );
+
+        if (!confirmed) return;
+
+        boolean success = false;
+
+        // ROLE 1
+        if (applicationMain.FoundationsMain.activeHomePage == 2) {
+
+            success = guiRole1.ModelRole1Home.deleteReply(selectedReply);
+        }
+
+        // ROLE 2 ✅ FIXED HERE
+        else if (applicationMain.FoundationsMain.activeHomePage == 3) {
+
+            success = applicationMain.FoundationsMain.database
+                    .softDeletePostById(selectedReply.getPostID());
+        }
+
+        if (success) {
+            showAlert("Success", "Reply deleted.");
+            ViewViewPost.loadReplies();
+        } else {
+            showAlert("Error", "Delete failed.");
+        }
+    }
+
+    /**
+     * 🔹 RETURN BUTTON
+     */
+    protected static void performReturn() {
+
+        if (applicationMain.FoundationsMain.activeHomePage == 3) {
+
+            guiRole2.ViewRole2Home.displayRole2Home(
+                ViewViewPost.theStage,
+                ViewViewPost.theUser
+            );
+
+        } else {
+
+            ViewRole1Home.displayRole1Home(
+                ViewViewPost.theStage,
+                ViewViewPost.theUser
+            );
+        }
+    }
+
+    /**
+     * 🔹 ALERT HELPER
+     */
+    private static void showAlert(String title, String message) {
+
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+            javafx.scene.control.Alert.AlertType.INFORMATION
+        );
+
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }
