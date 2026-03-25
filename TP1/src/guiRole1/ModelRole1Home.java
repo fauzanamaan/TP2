@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import database.Database;
+
 /**
  * <p> Title: ModelRole1Home Class </p>
  *
@@ -30,11 +32,24 @@ public class ModelRole1Home {
     private static int nextPostId = 1;
     private static int nextReplyId = 1;
 
+    // Real database connection
+    private static Database database = new Database();
+    private static boolean databaseReady = false;
+
     /**
      * Initializes the model with current user
      */
     public static void initialize(String username) {
         currentUser = username;
+        
+        if (!databaseReady) {
+            try {
+                database.connectToDatabase();
+                databaseReady = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -48,6 +63,13 @@ public class ModelRole1Home {
      * Gets all posts
      */
     public static List<Post> getAllPosts() {
+        if (databaseReady) {
+            try {
+                allPosts = database.getAllPosts();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return new ArrayList<>(allPosts);
     }
 
@@ -55,6 +77,14 @@ public class ModelRole1Home {
      * Gets a specific post by ID
      */
     public static Post getPostById(int postId) {
+        if (databaseReady) {
+            try {
+                return database.getPostByID(postId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         for (Post post : allPosts) {
             if (post.getPostID() == postId) {
                 return post;
@@ -68,8 +98,10 @@ public class ModelRole1Home {
      */
     public static List<Post> getMyPosts() {
         List<Post> myPosts = new ArrayList<>();
-        for (Post post : allPosts) {
-            if (post.getUsername().equals(currentUser)) {
+        
+        List<Post> sourcePosts = getAllPosts();
+        for (Post post : sourcePosts) {
+            if (post.getUsername() != null && post.getUsername().equals(currentUser)) {
                 myPosts.add(post);
             }
         }
@@ -88,12 +120,29 @@ public class ModelRole1Home {
             return false;
         }
 
-        // Friend's constructor: Post(username, title, body, keywords, threadName)
-        Post newPost = new Post(currentUser, title.trim(), body.trim(), "", 
+        try {
+            if (databaseReady) {
+                Post newPost = database.createPost(
+                    currentUser,
+                    title.trim(),
+                    body.trim(),
+                    "",
+                    (thread == null || thread.isEmpty()) ? "General" : thread
+                );
+
+                allPosts = database.getAllPosts();
+                postReplies.put(newPost.getPostID(), new ArrayList<>());
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // Fallback in-memory logic
+        Post newPost = new Post(currentUser, title.trim(), body.trim(), "",
                                (thread == null || thread.isEmpty()) ? "General" : thread);
         
-        // Manually set the ID since their setPostID is a stub
-        // This will be implemented by your teammates
         try {
             newPost.setPostID(nextPostId++);
         } catch (Exception e) {
@@ -156,15 +205,35 @@ public class ModelRole1Home {
             return false;
         }
 
-        // Friend's constructor: Reply(parentPostID, authorUserName, body)
+        try {
+            if (databaseReady) {
+                Reply newReply = database.createReply(
+                    currentUser,
+                    body.trim(),
+                    "",
+                    post.getThreadName(),
+                    postId
+                );
+
+                allReplies.add(newReply);
+
+                if (!postReplies.containsKey(postId)) {
+                    postReplies.put(postId, new ArrayList<>());
+                }
+                postReplies.get(postId).add(newReply);
+
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // Fallback in-memory logic
         Reply newReply = new Reply(postId, currentUser, body.trim());
-        
-        // Manually set ID if their implementation doesn't do it
-        // This will be handled by teammates later
         
         allReplies.add(newReply);
         
-        // Track reply for this post
         if (!postReplies.containsKey(postId)) {
             postReplies.put(postId, new ArrayList<>());
         }
@@ -180,8 +249,6 @@ public class ModelRole1Home {
         // Find reply by iterating (since no getReplyById in their code)
         Reply reply = null;
         for (Reply r : allReplies) {
-            // Assuming Reply will have a way to identify itself
-            // Your teammates will need to implement this
             if (r.getUsername().equals(currentUser)) {
                 reply = r;
                 break;
@@ -225,6 +292,14 @@ public class ModelRole1Home {
      * Gets replies for a specific post
      */
     public static List<Reply> getRepliesForPost(int postId) {
+        if (databaseReady) {
+            try {
+                return database.getRepliesForPost(postId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         if (postReplies.containsKey(postId)) {
             return new ArrayList<>(postReplies.get(postId));
         }
@@ -235,37 +310,18 @@ public class ModelRole1Home {
      * Get reply count for a post
      */
     public static int getReplyCount(int postId) {
-        if (postReplies.containsKey(postId)) {
-            return postReplies.get(postId).size();
-        }
-        return 0;
+        return getRepliesForPost(postId).size();
     }
     
     /**
-     * Helper: Get formatted timestamp (since friend's Post doesn't have this)
+     * Helper: Get formatted timestamp
      */
     public static String getFormattedTimestamp(Post post) {
         if (post.getTimestamp() == null) {
             return "";
         }
-        java.time.format.DateTimeFormatter formatter =
+        java.time.format.DateTimeFormatter formatter = 
             java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return post.getTimestamp().format(formatter);
-    }
-
-    /**
-     * Check if current user has read a post
-     */
-    public static boolean isRead(int postId) {
-        database.Database db = applicationMain.FoundationsMain.database;
-        return db.isPostRead(currentUser, postId);
-    }
-
-    /**
-     * Search posts by keyword, optionally filtered by thread
-     */
-    public static List<Post> searchPosts(String keyword, String thread) {
-        database.Database db = applicationMain.FoundationsMain.database;
-        return db.searchPosts(keyword, thread);
     }
 }
