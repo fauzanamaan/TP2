@@ -1,4 +1,4 @@
-package guiRole2;
+ package guiRole2;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -272,12 +272,30 @@ public class ViewRole2Home {
 	 */
 	protected static void populatePostList(List<Post> posts) {
 		postData.clear();
+
+		if (posts == null) {
+			return;
+		}
+
 		for (Post post : posts) {
+			if (post == null) continue;
+
 			String title = post.getTitle();
 			if (title == null || title.isBlank()) {
 				title = "(Reply/No Title)";
 			}
-			postData.add("ID " + post.getPostID() + " | " + title + " | " + post.getUsername());
+
+			String username = post.getUsername();
+			if (username == null || username.isBlank()) {
+				username = "(Unknown User)";
+			}
+
+			String threadName = post.getThreadName();
+			if (threadName == null || threadName.isBlank()) {
+				threadName = "General";
+			}
+
+			postData.add("ID " + post.getPostID() + " | " + title + " | " + username + " | " + threadName);
 		}
 	}
 
@@ -286,7 +304,21 @@ public class ViewRole2Home {
 	 */
 	protected static void populateThreadList(List<String> threads) {
 		threadData.clear();
-		threadData.addAll(threads);
+
+		if (threads == null || threads.isEmpty()) {
+			threadData.add("General");
+			return;
+		}
+
+		if (!threads.contains("General")) {
+			threadData.add("General");
+		}
+
+		for (String thread : threads) {
+			if (thread != null && !thread.isBlank() && !threadData.contains(thread)) {
+				threadData.add(thread);
+			}
+		}
 	}
 
 	/**
